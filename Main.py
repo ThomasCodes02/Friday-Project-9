@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, messagebox
+from tkinter import messagebox
 import openai
 from dotenv import load_dotenv
 import os
@@ -7,48 +7,60 @@ import os
 # Load the .env file
 load_dotenv()
 
-# Retrieve the OpenAI API key
-api_key = os.getenv('key')
-if not api_key:
-    raise ValueError("API key not found. Please add OPENAI_API_KEY to your .env file.")
+# Access the API key
+api_key = os.getenv("key")
 
+if not api_key:
+    raise ValueError("API key not found. Ensure it is defined in the .env file as 'key'.")
+
+# Set the API key
 openai.api_key = api_key
 
-# Function to interact with ChatGPT
-def generate_response():
-    user_prompt = input_text.get("1.0", tk.END).strip()
-    if not user_prompt:
-        messagebox.showwarning("Warning", "Please enter a prompt!")
-        return
-    
+# Function to generate a response from OpenAI
+def generate_response(prompt):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # or "gpt-3.5-turbo"
-            messages=[{"role": "user", "content": user_prompt}],
+            model="gpt-4",  # Or "gpt-3.5-turbo"
+            messages=[{"role": "user", "content": prompt}],
         )
-        output_text.delete("1.0", tk.END) 
-        output_text.insert(tk.END, response['choices'][0]['message']['content'])
+        return response.choices[0].message['content']
     except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
+        print(f"Error: {e}")
+        return "An error occurred. Please try again."
 
-# GUI Setup
-app = tk.Tk()
-app.title("Python Coding Assistant")
-app.geometry("600x600")
+# Function to handle the submit button click
+def on_submit():
+    prompt = prompt_entry.get("1.0", tk.END).strip()  # Get user input from Text widget
+    if not prompt:
+        messagebox.showerror("Error", "Please enter a prompt!")
+        return
+    
+    # Get the response from OpenAI
+    response = generate_response(prompt)
+    response_text.delete("1.0", tk.END)  # Clear previous response
+    response_text.insert(tk.END, response)  # Display the response
 
-# Input text area
-tk.Label(app, text="Enter Prompt", font=("Arial", 14)).pack(pady=5)
-input_text = scrolledtext.ScrolledText(app, wrap=tk.WORD, width=70, height=10)
-input_text.pack(pady=10)
+# Set up the GUI
+root = tk.Tk()
+root.title("ChatGPT Prompt GUI")
+
+# Prompt label and entry
+prompt_label = tk.Label(root, text="Enter your prompt:")
+prompt_label.pack(pady=5)
+
+prompt_entry = tk.Text(root, height=10, width=50)
+prompt_entry.pack(pady=5)
 
 # Submit button
-submit_button = tk.Button(app, text="Submit", font=("Arial", 14), command=generate_response)
-submit_button.pack(pady=5)
+submit_button = tk.Button(root, text="Submit", command=on_submit)
+submit_button.pack(pady=10)
 
-# Output text area
-tk.Label(app, text="Generated Response:", font=("Arial", 14)).pack(pady=5)
-output_text = scrolledtext.ScrolledText(app, wrap=tk.WORD, width=70, height=20)
-output_text.pack(pady=10)
+# Response label and text box
+response_label = tk.Label(root, text="Response:")
+response_label.pack(pady=5)
 
-# Run the GUI loop
-app.mainloop()
+response_text = tk.Text(root, height=15, width=50)
+response_text.pack(pady=5)
+
+# Run the application
+root.mainloop()
