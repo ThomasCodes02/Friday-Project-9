@@ -8,7 +8,7 @@ import os
 load_dotenv()
 
 # Retrieve the OpenAI API key
-api_key = os.getenv("key")
+api_key = os.getenv('key')
 if not api_key:
     raise ValueError("API key not found. Please add OPENAI_API_KEY to your .env file.")
 
@@ -26,7 +26,7 @@ def generate_response():
             model="gpt-4",  # or "gpt-3.5-turbo"
             messages=[{"role": "user", "content": user_prompt}],
         )
-        output_text.delete("1.0", tk.END)  # Clear previous output
+        output_text.delete("1.0", tk.END) 
         output_text.insert(tk.END, response['choices'][0]['message']['content'])
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
